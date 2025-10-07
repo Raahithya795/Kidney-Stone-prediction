@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kidney Stone Prediction Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(-50px); }
+            100% { transform: translateX(50px); }
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .input-section, .result-section {
+            background: rgba(248, 249, 250, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .input-section:hover, .result-section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-section::before, .result-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .input-section h2, .result-section h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 1.6em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.95em;
+            position: relative;
+        }
+
+        .input-group label::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .input-group:focus-within label::after {
+            width: 100%;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(221, 221, 221, 0.6);
+            border-radius: 12px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 
+                0 0 0 4px rgba(102, 126, 234, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-group input:hover, .input-group select:hover {
+            border-color: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .predict-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .predict-btn:hover::before {
+            left: 100%;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .predict-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .result-display {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 35px;
+            border-radius: 18px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            animation: rotate 6s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-display > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .probability-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .probability-circle::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), transparent);
+            border-radius: 50%;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .low-risk {
+            background: linear-gradient(135deg, #4CAF50, #45a049, #66BB6A);
+        }
+
+        .medium-risk {
+            background: linear-gradient(135deg, #FF9800, #F57C00, #FFB74D);
+        }
+
+        .high-risk {
+            background: linear-gradient(135deg, #F44336, #D32F2F, #EF5350);
+        }
+
+        .risk-text {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .risk-description {
+            color: #666;
+            font-size: 0.98em;
+            line-height: 1.6;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .feature-importance {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .feature-importance::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .feature-importance h3 {
+            color: #2c3e50;
+            margin-bottom: 18px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .feature-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-bar:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateX(5px);
+        }
+
+        .feature-name {
+            min-width: 130px;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .feature-value {
+            flex: 1;
+            height: 10px;
+            background: rgba(233, 236, 239, 0.8);
+            border-radius: 5px;
+            margin: 0 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .feature-value::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 25%, 
+                transparent 75%, 
+                rgba(255, 255, 255, 0.1) 75%);
+            background-size: 8px 8px;
+            animation: move 1s linear infinite;
+        }
+
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 8px 8px; }
+        }
+
+        .feature-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 5px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255, 255, 255, 0.2) 25%, 
+                transparent 25%, 
+                transparent 75%, 
+                rgba(255, 255, 255, 0.2) 75%);
+            background-size: 6px 6px;
+            animation: slide-bars 1.5s linear infinite;
+        }
+
+        @keyframes slide-bars {
+            0% { background-position: 0 0; }
+            100% { background-position: 6px 6px; }
+        }
+
+        .feature-score {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 45px;
+            font-weight: 600;
+        }
+
+        .disclaimer {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            padding: 18px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 234, 167, 0.8);
+            font-size: 0.9em;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .disclaimer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: disclaimer-shine 3s ease-in-out infinite;
+        }
+
+        @keyframes disclaimer-shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .input-hint {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(102, 126, 234, 0.1);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                padding: 25px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .input-section, .result-section {
+                padding: 25px;
+            }
+            
+            .probability-circle {
+                width: 110px;
+                height: 110px;
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .header p {
+                font-size: 1.1em;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .input-section, .result-section {
+                padding: 20px;
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Focus styles for keyboard navigation */
+        .predict-btn:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .container {
+                background: white;
+                border: 2px solid black;
+            }
+            
+            .input-group input, .input-group select {
+                border: 2px solid black;
+            }
+            
+            .predict-btn {
+                background: black;
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Kidney Disease Prediction Tool</h1>
+            <p>Advanced AI-powered analysis for kidney disease risk assessment</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>📋 Patient Information</h2>
+                <form id="predictionForm">
+                    <div class="input-group">
+                        <label for="gravity">Specific Gravity:</label>
+                        <input type="number" id="gravity" step="0.001" min="1.000" max="1.100" value="1.020">
+                        <div class="input-hint">Normal range: 1.003-1.030</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ph">pH Level:</label>
+                        <input type="number" id="ph" step="0.1" min="4.0" max="9.0" value="6.0">
+                        <div class="input-hint">Normal range: 4.6-8.0</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="osmo">Osmolarity (mOsm/kg):</label>
+                        <input type="number" id="osmo" step="1" min="50" max="1400" value="400">
+                        <div class="input-hint">Normal range: 50-1400</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="cond">Conductivity (mS/cm):</label>
+                        <input type="number" id="cond" step="0.1" min="5" max="38" value="15">
+                        <div class="input-hint">Normal range: 5-38</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="urea">Urea (mmol/L):</label>
+                        <input type="number" id="urea" step="1" min="10" max="620" value="200">
+                        <div class="input-hint">Normal range: 10-620</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="calc">Calcium (mmol/L):</label>
+                        <input type="number" id="calc" step="0.1" min="0.1" max="20" value="3.0">
+                        <div class="input-hint">Normal range: 0.1-20</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sugar">Sugar Level:</label>
+                        <select id="sugar">
+                            <option value="0">0 - Low Sugar (Normal)</option>
+                            <option value="1">1 - Medium Sugar (Possible Hyperglycemia)</option>
+                            <option value="2">2 - High Sugar (Potential Diabetes Risk)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="predict-btn">🔍 Predict Kidney Stone Risk</button>
+                </form>
+            </div>
+
+            <div class="result-section">
+                <h2>📊 Prediction Results</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing your data...</p>
+                </div>
+
+                <div class="result-display" id="resultDisplay">
+                    <p style="color: #666; font-size: 1.1em;">Enter your information and click predict to see results</p>
+                </div>
+
+                <div class="feature-importance" id="featureImportance" style="display: none;">
+                    <h3>🎯 Key Risk Factors</h3>
+                    <div id="featureList"></div>
+                </div>
+
+                <div class="disclaimer">
+                    <strong>⚠️ Medical Disclaimer:</strong> This tool provides educational predictions only. Always consult healthcare professionals for proper medical diagnosis and treatment.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simplified ML model coefficients (based on common kidney stone risk factors)
+        const modelWeights = {
+            'gravity': 0.15,
+            'ph': 0.12,
+            'osmo': 0.20,
+            'cond': 0.18,
+            'urea': 0.10,
+            'calc': 0.25,
+            'sugar': 0.08
+        };
+
+        // Feature engineering functions
+        function calculateFeatures(inputs) {
+            const features = {
+                gravity: parseFloat(inputs.gravity),
+                ph: parseFloat(inputs.ph),
+                osmo: parseFloat(inputs.osmo),
+                cond: parseFloat(inputs.cond),
+                urea: parseFloat(inputs.urea),
+                calc: parseFloat(inputs.calc),
+                sugar: parseFloat(inputs.sugar)
+            };
+
+            // Add engineered features
+            features.urine_volume = (1000 * features.gravity * features.osmo) / (18 * 1.001);
+            features.calcium_conductivity_ratio = features.calc / features.cond;
+            features.calcium_pH_interaction = features.calc * features.ph;
+            features.sugar_gravity_ratio = features.gravity / (features.sugar + 1);
+            features.osmolarity_calcium_interaction = features.osmo * features.calc;
+
+            return features;
+        }
+
+        // Simplified prediction function
+        function predictKidneyStone(features) {
+            let score = 0;
+            
+            // Basic risk calculation
+            score += (features.gravity - 1.020) * 100; // Higher gravity = higher risk
+            score += Math.abs(features.ph - 6.5) * 5; // pH far from normal = higher risk
+            score += (features.osmo - 400) * 0.001; // Higher osmolarity = higher risk
+            score += (features.cond - 15) * 0.02; // Higher conductivity = higher risk
+            score += (features.urea - 200) * 0.001; // Higher urea = higher risk
+            score += (features.calc - 3) * 2; // Higher calcium = higher risk
+            score += features.sugar * 0.1; // Higher sugar = higher risk
+
+            // Normalize to probability (0-1)
+            const probability = Math.max(0, Math.min(1, (score + 50) / 100));
+            
+            return {
+                probability: probability,
+                risk_level: probability < 0.3 ? 'Low' : probability < 0.7 ? 'Medium' : 'High',
+                factors: calculateRiskFactors(features)
+            };
+        }
+
+        function calculateRiskFactors(features) {
+            const factors = [];
+            
+            if (features.gravity > 1.025) factors.push({name: 'High Specific Gravity', score: 0.8});
+            if (features.ph < 5.5 || features.ph > 7.5) factors.push({name: 'Abnormal pH', score: 0.7});
+            if (features.osmo > 800) factors.push({name: 'High Osmolarity', score: 0.6});
+            if (features.cond > 25) factors.push({name: 'High Conductivity', score: 0.5});
+            if (features.calc > 5) factors.push({name: 'High Calcium', score: 0.9});
+            if (features.sugar > 0) factors.push({name: 'Sugar Present', score: 0.4});
+            
+            return factors.sort((a, b) => b.score - a.score).slice(0, 5);
+        }
+document.getElementById('predictionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const inputs = {
+        gravity: parseFloat(document.getElementById('gravity').value),
+        ph: parseFloat(document.getElementById('ph').value),
+        osmo: parseFloat(document.getElementById('osmo').value),
+        cond: parseFloat(document.getElementById('cond').value),
+        urea: parseFloat(document.getElementById('urea').value),
+        calc: parseFloat(document.getElementById('calc').value),
+        sugar: parseInt(document.getElementById('sugar').value)
+    };
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultDisplay').style.display = 'none';
+
+    fetch('/predict', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(inputs)
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayResults({ probability: data.probability, risk_level: data.risk_level, factors: [] });
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultDisplay').style.display = 'flex';
+    });
+});
+
+        // Form submission handler
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const resultDisplay = document.getElementById('resultDisplay');
+            const featureImportance = document.getElementById('featureImportance');
+            
+            // Show loading
+            loading.style.display = 'block';
+            resultDisplay.style.display = 'none';
+            featureImportance.style.display = 'none';
+            
+            // Collect input values
+            const inputs = {
+                gravity: document.getElementById('gravity').value,
+                ph: document.getElementById('ph').value,
+                osmo: document.getElementById('osmo').value,
+                cond: document.getElementById('cond').value,
+                urea: document.getElementById('urea').value,
+                calc: document.getElementById('calc').value,
+                sugar: document.getElementById('sugar').value
+            };
+            
+            // Simulate processing time
+            setTimeout(() => {
+                const features = calculateFeatures(inputs);
+                const prediction = predictKidneyStone(features);
+                
+                displayResults(prediction);
+                
+                // Hide loading and show results
+                loading.style.display = 'none';
+                resultDisplay.style.display = 'flex';
+                featureImportance.style.display = 'block';
+            }, 1500);
+        });
+
+        function displayResults(prediction) {
+            const resultDisplay = document.getElementById('resultDisplay');
+            const featureList = document.getElementById('featureList');
+            
+            const percentage = (prediction.probability * 100).toFixed(1);
+            const riskClass = prediction.risk_level.toLowerCase() + '-risk';
+            
+            let riskDescription = '';
+            if (prediction.risk_level === 'Low') {
+                riskDescription = 'Your urine parameters suggest a low risk of kidney stone formation. Continue maintaining healthy habits.';
+            } else if (prediction.risk_level === 'Medium') {
+                riskDescription = 'Your urine parameters suggest a moderate risk. Consider dietary modifications and increased water intake.';
+            } else {
+                riskDescription = 'Your urine parameters suggest a higher risk. Consult with a healthcare provider for personalized advice.';
+            }
+            
+            resultDisplay.innerHTML = `
+                <div class="probability-circle ${riskClass}">
+                    ${percentage}%
+                </div>
+                <div class="risk-text">${prediction.risk_level} Risk</div>
+                <div class="risk-description">${riskDescription}</div>
+            `;
+            
+            // Display feature importance
+            featureList.innerHTML = '';
+            prediction.factors.forEach(factor => {
+                const barElement = document.createElement('div');
+                barElement.className = 'feature-bar';
+                barElement.innerHTML = `
+                    <div class="feature-name">${factor.name}</div>
+                    <div class="feature-value">
+                        <div class="feature-fill" style="width: ${factor.score * 100}%"></div>
+                    </div>
+                    <div class="feature-score">${(factor.score * 100).toFixed(0)}%</div>
+                `;
+                featureList.appendChild(barElement);
+            });
+        }
+
+        // Initialize with default prediction
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can add any initialization code here
+            console.log('Kidney Stone Prediction Tool loaded successfully!');
+        });
+    </script>
+</body>
+</html>
