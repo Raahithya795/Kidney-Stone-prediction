@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kidney Stone ML Analysis Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin: 20px 0 15px 0;
+            font-size: 1.2em;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .code-block .keyword { color: #ff79c6; }
+        .code-block .string { color: #f1fa8c; }
+        .code-block .comment { color: #6272a4; }
+        .code-block .function { color: #50fa7b; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .info-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .model-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateX(5px);
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .model-accuracy {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .feature-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .feature-bar-container {
+            flex: 1;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .feature-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .pipeline-step {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .pipeline-step::after {
+            content: '→';
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .pipeline-step:last-child::after {
+            content: '';
+        }
+
+        .pipeline-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .pipeline-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .visualization-placeholder {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 300px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            color: #666;
+            font-size: 1.2em;
+            border: 2px dashed #999;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .alert {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left-color: #17a2b8;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .tabs { flex-wrap: wrap; }
+            .pipeline-flow { flex-direction: column; }
+            .pipeline-step::after { content: '↓'; right: auto; top: auto; bottom: -30px; }
+            .pipeline-step:last-child::after { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Kidney Stone ML Analysis Platform</h1>
+            <p>Complete Machine Learning Pipeline for Kidney Stone Prediction</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+            <button class="tab" onclick="switchTab('data')">📁 Data Processing</button>
+            <button class="tab" onclick="switchTab('features')">⚙️ Feature Engineering</button>
+            <button class="tab" onclick="switchTab('models')">🤖 Models</button>
+            <button class="tab" onclick="switchTab('results')">📈 Results</button>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <div class="section">
+                <h2>🎯 Project Overview</h2>
+                <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+                    This comprehensive machine learning project analyzes kidney stone formation using urine chemistry data. 
+                    The pipeline includes advanced feature engineering, multiple ML models, ensemble methods, and deep learning approaches.
+                </p>
+
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Dataset Features</div>
+                        <div class="metric-value">6+</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Engineered Features</div>
+                        <div class="metric-value">12+</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">ML Models</div>
+                        <div class="metric-value">10+</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Target</div>
+                        <div class="metric-value">Binary</div>
+                    </div>
+                </div>
+
+                <h3>🔄 ML Pipeline Flow</h3>
+                <div class="pipeline-flow">
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">📥</div>
+                        <div class="pipeline-label">Data Loading</div>
+                    </div>
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">🔍</div>
+                        <div class="pipeline-label">EDA</div>
+                    </div>
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">⚙️</div>
+                        <div class="pipeline-label">Feature Engineering</div>
+                    </div>
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">⚖️</div>
+                        <div class="pipeline-label">SMOTE Balancing</div>
+                    </div>
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">🤖</div>
+                        <div class="pipeline-label">Model Training</div>
+                    </div>
+                    <div class="pipeline-step">
+                        <div class="pipeline-icon">📊</div>
+                        <div class="pipeline-label">Evaluation</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>📚 Libraries Used</h4>
+                        <p>pandas, numpy, scikit-learn, TensorFlow, XGBoost, LightGBM, CatBoost, seaborn, matplotlib</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🎯 Problem Type</h4>
+                        <p>Binary Classification - Predicting kidney stone presence based on urine chemistry parameters</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>⚖️ Class Balancing</h4>
+                        <p>SMOTE (Synthetic Minority Over-sampling Technique) applied to handle class imbalance</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🔬 Validation Strategy</h4>
+                        <p>80-20 train-test split with StandardScaler normalization for neural networks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="data" class="tab-content">
+            <div class="section">
+                <h2>📁 Data Processing Pipeline</h2>
+                
+                <h3>Original Features</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <strong>gravity</strong> - Specific gravity of urine
+                    </div>
+                    <div class="feature-item">
+                        <strong>ph</strong> - pH level of urine
+                    </div>
+                    <div class="feature-item">
+                        <strong>osmo</strong> - Osmolarity (concentration)
+                    </div>
+                    <div class="feature-item">
+                        <strong>cond</strong> - Conductivity
+                    </div>
+                    <div class="feature-item">
+                        <strong>urea</strong> - Urea concentration
+                    </div>
+                    <div class="feature-item">
+                        <strong>calc</strong> - Calcium concentration
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar</strong> - Sugar level (0: Normal, 1: Medium, 2: High)
+                    </div>
+                    <div class="feature-item">
+                        <strong>target</strong> - Kidney stone presence (0: No, 1: Yes)
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>📊 Data Exploration:</strong> The pipeline includes comprehensive EDA with distribution plots, 
+                    scatterplot matrices, box plots, swarm plots, and correlation heatmaps to understand feature relationships.
+                </div>
+
+                <h3>Data Preprocessing Steps</h3>
+                <div class="code-block">
+<span class="comment"># Load dataset</span>
+df = pd.<span class="function">read_csv</span>(<span class="string">'kidney_urine_with_sugar.csv'</span>)
+
+<span class="comment"># Add ID column</span>
+df.<span class="function">insert</span>(0, <span class="string">'id'</span>, <span class="function">range</span>(1, <span class="function">len</span>(df) + 1))
+
+<span class="comment"># Visualizations: histograms, pairplots, boxplots</span>
+<span class="keyword">for</span> column <span class="keyword">in</span> data_without_target.columns:
+    sns.<span class="function">histplot</span>(data=data_without_target, x=column, kde=<span class="keyword">True</span>)
+    
+<span class="comment"># Correlation analysis with target</span>
+corr = df.<span class="function">corr</span>()
+target_corr = corr[<span class="string">'target'</span>].<span class="function">drop</span>(<span class="string">'target'</span>)
+                </div>
+            </div>
+        </div>
+
+        <div id="features" class="tab-content">
+            <div class="section">
+                <h2>⚙️ Feature Engineering</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    Advanced feature engineering creates 12+ new features by combining existing variables to capture complex relationships.
+                </p>
+
+                <h3>Engineered Features</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <strong>urine_volume</strong>
+                        <span style="color: #666; font-size: 0.9em;">= (1000 × gravity × osmo) / (18 × 1.001)</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>specific_gravity_calcium_ratio</strong>
+                        <span style="color: #666; font-size: 0.9em;">= gravity / calc</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>calcium_conductivity_ratio</strong>
+                        <span style="color: #666; font-size: 0.9em;">= calc / cond</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>calcium_pH_interaction</strong>
+                        <span style="color: #666; font-size: 0.9em;">= calc × ph</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>urea_pH_interaction</strong>
+                        <span style="color: #666; font-size: 0.9em;">= urea × ph</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>osmolarity_calcium_interaction</strong>
+                        <span style="color: #666; font-size: 0.9em;">= osmo × calc</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar_gravity_ratio</strong>
+                        <span style="color: #666; font-size: 0.9em;">= gravity / (sugar + 1)</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar_osmo_interaction</strong>
+                        <span style="color: #666; font-size: 0.9em;">= osmo × sugar</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar_cond_ratio</strong>
+                        <span style="color: #666; font-size: 0.9em;">= cond / (sugar + 1)</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar_pH_product</strong>
+                        <span style="color: #666; font-size: 0.9em;">= sugar × ph</span>
+                    </div>
+                    <div class="feature-item">
+                        <strong>sugar_urea_interaction</strong>
+                        <span style="color: #666; font-size: 0.9em;">= sugar × urea</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>🎯 Feature Selection:</strong> RandomForest feature importance is used to select the top 5 most 
+                    predictive features, reducing dimensionality while maintaining model performance.
+                </div>
+
+                <div class="code-block">
+<span class="comment"># Feature importance extraction</span>
+rf = <span class="function">RandomForestClassifier</span>()
+rf.<span class="function">fit</span>(X_train, y_train)
+
+feature_importance = rf.feature_importances_
+selected_features = feature_importance_df.<span class="function">nlargest</span>(5, <span class="string">'Importance'</span>)[<span class="string">'Feature'</span>].values
+
+<span class="comment"># Apply SMOTE for class balancing</span>
+smote = <span class="function">SMOTE</span>(random_state=42)
+X_smote, y_smote = smote.<span class="function">fit_resample</span>(X[selected_features], y)
+                </div>
+            </div>
+        </div>
+
+        <div id="models" class="tab-content">
+            <div class="section">
+                <h2>🤖 Machine Learning Models</h2>
+                
+                <h3>Traditional ML Models</h3>
+                <div class="model-list">
+                    <div class="model-item">
+                        <span class="model-name">Logistic Regression</span>
+                        <span class="model-accuracy">Baseline Model</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">Support Vector Classifier (SVC)</span>
+                        <span class="model-accuracy">Kernel Methods</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">Random Forest</span>
+                        <span class="model-accuracy">Ensemble - Bagging</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">Gradient Boosting</span>
+                        <span class="model-accuracy">Ensemble - Boosting</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">XGBoost</span>
+                        <span class="model-accuracy">Advanced Boosting</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">LightGBM</span>
+                        <span class="model-accuracy">Fast Boosting</span>
+                    </div>
+                    <div class="model-item">
+                        <span class="model-name">CatBoost</span>
+                        <span class="model-accuracy">Categorical Boosting</span>
+                    </div>
+                </div>
+
+                <h3>Advanced Ensemble Methods</h3>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>🔗 Stacking Classifier</h4>
+                        <p>Combines predictions from Logistic Regression, SVC, Random Forest, Gradient Boosting, and MLP using a meta-model (Logistic Regression)</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🧠 Neural Network (Basic)</h4>
+                        <p>128-128-64 architecture with BatchNormalization, Dropout, and EarlyStopping for regularization</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🚀 Optimized Neural Network</h4>
+                        <p>Simplified 128-64 architecture with lower learning rate (0.0005), ReduceLROnPlateau, and extended training (300 epochs)</p>
+                    </div>
+                </div>
+
+                <h3>Neural Network Architecture</h3>
+                <div class="code-block">
+<span class="keyword">def</span> <span class="function">create_optimized_nn</span>(input_dim):
+    model = keras.<span class="function">Sequential</span>([
+        layers.<span class="function">Dense</span>(128, activation=<span class="string">'relu'</span>, input_shape=(input_dim,)),
+        layers.<span class="function">BatchNormalization</span>(),
+        layers.<span class="function">Dropout</span>(0.3),
+        
+        layers.<span class="function">Dense</span>(64, activation=<span class="string">'relu'</span>),
+        layers.<span class="function">BatchNormalization</span>(),
+        layers.<span class="function">Dropout</span>(0.3),
+        
+        layers.<span class="function">Dense</span>(1, activation=<span class="string">'sigmoid'</span>)
+    ])
+    
+    optimizer = <span class="function">Adam</span>(learning_rate=0.0005)
+    model.<span class="function">compile</span>(optimizer=optimizer, loss=<span class="string">'binary_crossentropy'</span>, 
+                  metrics=[<span class="string">'accuracy'</span>])
+    <span class="keyword">return</span> model
+                </div>
+
+                <div class="alert">
+                    <strong>⚙️ Training Configuration:</strong> Models use StandardScaler for normalization, 
+                    80-20 train-validation split, and SMOTE for handling class imbalance before training.
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="tab-content">
+            <div class="section">
+                <h2>📈 Results & Evaluation</h2>
+                
+                <h3>Evaluation Metrics</h3>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>✅ Accuracy Score</h4>
+                        <p>Primary metric for overall model performance across all classes</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>📊 Classification Report</h4>
+                        <p>Precision, Recall, F1-Score for detailed class-wise performance</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🎯 Confusion Matrix</h4>
+                        <p>True Positives, False Positives, True Negatives, False Negatives visualization</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🔍 Feature Importance</h4>
+                        <p>Ranking of most influential features for prediction</p>
+                    </div>
+                </div>
+
+                <h3>Model Comparison Process</h3>
+                <div class="code-block">
+<span class="comment"># Train and evaluate all models</span>
+<span class="keyword">for</span> name, model <span class="keyword">in</span> models:
+    model.<span class="function">fit</span>(X_train_scaled, y_train)
+    y_pred = model.<span class="function">predict</span>(X_val_scaled)
+    accuracy = <span class="function">accuracy_score</span>(y_val, y_pred)
+    <span class="function">print</span>(<span class="string">f"{name} accuracy: {accuracy:.4f}"</span>)
+
+<span class="comment"># Metrics for detailed evaluation</span>
+<span class="function">print</span>(<span class="string">"Classification Report:"</span>, <span class="function">classification_report</span>(y_test, y_pred))
+<span class="function">print</span>(<span class="string">"Confusion Matrix:"</span>, <span class="function">confusion_matrix</span>(y_test, y_pred))
+                </div>
+
+                <h3>📊 Visualizations Generated</h3>
+                <ul>
+                    <li><strong>Distribution Plots:</strong> KDE histograms for each feature showing data distribution</li>
+                    <li><strong>Pairplot Matrix:</strong> Scatterplot matrix colored by target class</li>
+                    <li><strong>Box & Swarm Plots:</strong> Feature distributions across target classes</li>
+                    <li><strong>Correlation Heatmap:</strong> Feature correlations with target variable</li>
+                    <li><strong>Feature Importance Bar Chart:</strong> Top contributing features ranked</li>
+                    <li><strong>Training History:</strong> Loss and accuracy curves for neural networks</li>
+                </ul>
+
+                <div class="alert alert-success">
+                    <strong>🎯 Final Model Selection:</strong> The code allows flexible model selection for predictions. 
+                    The optimized neural network or stacking classifier typically provides the best performance.
+                </div>
+            </div>
+        </div>
+
+        <div id="code" class="tab-content">
+            <div class="section">
+                <h2>💻 Code Structure & Workflow</h2>
